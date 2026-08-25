@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#0A0A22</color>
+    <color name="surface">#141433</color>
+    <color name="surface_alt">#1E1E45</color>
+    <color name="surface_selected">#2E2E63</color>
+    <color name="cyan">#5B7CFA</color>
+    <color name="magenta">#F47B9C</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text_primary">#F4F6FF</color>
+    <color name="text_secondary">#AAB1C7</color>
+    <color name="surface_light">#2A2A57</color>
+    <color name="button_text">#05060A</color>
+    <color name="warning">#F4B45F</color>
+    <color name="success">#63E6A5</color>
+    <color name="text_muted">#6F7895</color>
+    <color name="divider">#2A2A57</color>
+    <color name="black">#05060A</color>
+    <color name="nexus_accent">#7B61FF</color>
+    <color name="nexus_gold">#F5B93D</color>
+</resources>
