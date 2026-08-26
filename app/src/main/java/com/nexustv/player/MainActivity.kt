@@ -373,8 +373,8 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.homeNavKids).setOnClickListener { openHomeQuickCategory(listOf("kids", "infantil", "desenho", "animação", "animacao"), "Kids") }
         findViewById<View>(R.id.homeNavSearch).setOnClickListener { showSearchDialog() }
         findViewById<View>(R.id.homeNavFavorites).setOnClickListener { switchFavorites() }
-        findViewById<View>(R.id.homeQuickCategories).setOnClickListener { switchSection(MediaKind.MOVIE) }
-        findViewById<View>(R.id.homeQuickStreamings).setOnClickListener { showStreamingPickerDialog() }
+        findViewById<View>(R.id.homeQuickCategories).setOnClickListener { openHomeQuickCategory(listOf("dorama"), "Doramas") }
+        findViewById<View>(R.id.homeQuickStreamings).setOnClickListener { openHomeQuickCategory(listOf("novela"), "Novelas") }
         findViewById<View>(R.id.homeQuickLaunches).setOnClickListener { openHomeQuickCategory(listOf("lançamento", "lancamento"), "Lançamentos") }
         findViewById<View>(R.id.homeQuickPopular).setOnClickListener {
             switchSection(MediaKind.MOVIE)
