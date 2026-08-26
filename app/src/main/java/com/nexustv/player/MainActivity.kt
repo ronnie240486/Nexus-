@@ -97,7 +97,6 @@ class MainActivity : Activity() {
     private lateinit var nowLabel: TextView
     private lateinit var currentProgram: TextView
     private lateinit var currentProgramDescription: TextView
-    private lateinit var currentProgramImage: ImageView
     private lateinit var epgUpcoming: LinearLayout
     private lateinit var programTime: TextView
     private lateinit var nextProgram: TextView
@@ -319,7 +318,6 @@ class MainActivity : Activity() {
         nowLabel = findViewById(R.id.nowLabel)
         currentProgram = findViewById(R.id.currentProgram)
         currentProgramDescription = findViewById(R.id.currentProgramDescription)
-        currentProgramImage = findViewById(R.id.currentProgramImage)
         epgUpcoming = findViewById(R.id.epgUpcoming)
         programTime = findViewById(R.id.programTime)
         nextProgram = findViewById(R.id.nextProgram)
@@ -2373,10 +2371,6 @@ class MainActivity : Activity() {
         nowLabel.text = "AGORA"
         currentProgram.text = if (isLive) epgProgram?.title ?: editorial.currentProgram else ""
         currentProgramDescription.text = if (isLive) epgProgram?.description?.ifBlank { null } ?: editorial.currentDescription else ""
-        if (isLive) {
-            val programImageSource = entry.logoUrl.ifBlank { entry.backdropUrl }
-            if (programImageSource.isBlank()) currentProgramImage.setImageResource(fallbackHero(entry)) else imageLoader.load(programImageSource, currentProgramImage, fallbackHero(entry))
-        }
         programTime.text = if (isLive) epgProgram?.let { "${formatTime(it.start)} – ${formatTime(it.stop)}" } ?: editorial.time else ""
         renderUpcomingEpg(epgPrograms, epgProgram, isLive)
         nextProgram.visibility = if (isLive && epgPrograms.isEmpty()) View.VISIBLE else View.GONE
