@@ -709,7 +709,7 @@
                     <FrameLayout
                         android:id="@+id/homeHeroLandscapeCard"
                         android:layout_width="match_parent"
-                        android:layout_height="370dp"
+                        android:layout_height="330dp"
                         android:background="@drawable/tv_banner"
                         android:foreground="@drawable/focus_ring_overlay"
                         android:clickable="true"
@@ -762,7 +762,7 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickCategories"
                                 android:layout_width="match_parent"
-                                android:layout_height="120dp"
+                                android:layout_height="100dp"
                                 android:layout_marginBottom="8dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
@@ -781,7 +781,7 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickLaunches"
                                 android:layout_width="match_parent"
-                                android:layout_height="120dp"
+                                android:layout_height="100dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -806,7 +806,7 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickStreamings"
                                 android:layout_width="match_parent"
-                                android:layout_height="120dp"
+                                android:layout_height="100dp"
                                 android:layout_marginBottom="8dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
@@ -825,7 +825,7 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickPopular"
                                 android:layout_width="match_parent"
-                                android:layout_height="120dp"
+                                android:layout_height="100dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -847,7 +847,7 @@
                 <FrameLayout
                     android:id="@+id/homePosterACard"
                     android:layout_width="0dp"
-                    android:layout_height="628dp"
+                    android:layout_height="548dp"
                     android:layout_weight="0.75"
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/tv_banner"
@@ -881,7 +881,7 @@
                 <FrameLayout
                     android:id="@+id/homePosterBCard"
                     android:layout_width="0dp"
-                    android:layout_height="628dp"
+                    android:layout_height="548dp"
                     android:layout_weight="0.75"
                     android:background="@drawable/tv_banner"
                     android:foreground="@drawable/focus_ring_overlay"
