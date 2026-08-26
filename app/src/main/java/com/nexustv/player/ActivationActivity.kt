@@ -292,7 +292,7 @@ class ActivationActivity : Activity() {
                     if (myGeneration != connectionGeneration) return@runOnUiThread
                     if (!mainOpened && stats.total > 0) {
                         setConnectionProgress(86, "Catálogo inicial pronto. Organizando o restante em segundo plano...")
-                        status.text = "Catálogo inicial pronto. Abrindo NEXUS..."
+                        status.text = "Catálogo inicial pronto. Abrindo OMINUS..."
                         status.setTextColor(getColor(R.color.success))
                         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                             .putBoolean(PREF_ACCESS_ALLOWED, true)
@@ -400,7 +400,7 @@ class ActivationActivity : Activity() {
                                     // O primeiro lote já foi COMMITADO. A tela principal pode
                                     // consultar SQLite enquanto o restante da M3U continua.
                                     setConnectionProgress(86, "Catálogo inicial pronto. Organizando o restante em segundo plano...")
-                                    status.text = "Catálogo inicial pronto. Abrindo NEXUS..."
+                                    status.text = "Catálogo inicial pronto. Abrindo OMINUS..."
                                     status.setTextColor(getColor(R.color.success))
                                     getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                                         .putBoolean(PREF_ACCESS_ALLOWED, true)

@@ -5,7 +5,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Locale
 
-/** Uma estação de rádio reproduzível dentro do mesmo player Media3 do NEXUS. */
+/** Uma estação de rádio reproduzível dentro do mesmo player Media3 do OMINUS. */
 data class RadioStation(
     val id: String,
     val name: String,

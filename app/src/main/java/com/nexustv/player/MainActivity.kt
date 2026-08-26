@@ -2409,7 +2409,7 @@ class MainActivity : Activity() {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 })
             }.onSuccess { return }
-                .onFailure { Toast.makeText(this, "Player externo indisponível; usando o player NEXUS", Toast.LENGTH_SHORT).show() }
+                .onFailure { Toast.makeText(this, "Player externo indisponível; usando o player OMINUS", Toast.LENGTH_SHORT).show() }
         }
         startActivity(Intent(this, PlayerActivity::class.java).apply {
             putExtra(PlayerActivity.EXTRA_TITLE, entry.name)
@@ -2989,7 +2989,7 @@ class MainActivity : Activity() {
             "$manualDns/xmltv.php?username=${java.net.URLEncoder.encode(manualUser, "UTF-8")}&password=${java.net.URLEncoder.encode(manualPassword, "UTF-8")}"
         } else ""
         val emptyConfig = RemoteAppConfig(
-            registered = true, allowed = true, mac = "", appId = "maximus", appName = "NEXUS",
+            registered = true, allowed = true, mac = "", appId = "maximus", appName = "OMINUS",
             status = "", expiration = "", logoUrl = "", bannerUrl = "", backgroundUrl = "",
             messageTitle = "", messageText = "", messageImageUrl = "", iconLiveTv = "", iconMovies = "",
             iconSeries = "", serverApiUrl = "", dnsUrl = "", testApiUrl = "", epgUrl = manualEpgUrl,
@@ -3012,7 +3012,7 @@ class MainActivity : Activity() {
 
     private fun applyRemoteConfig(config: RemoteAppConfig, catalogImportAlreadyStarted: Boolean = false) {
         remoteConfig = config
-        brandMark.text = "NEXUS"
+        brandMark.text = "OMINUS"
         brandSubtitle.text = "TV PLAYER"
         appLogo.setImageResource(R.drawable.nexus_logo)
         if (config.backgroundUrl.isNotBlank()) imageLoader.load(config.backgroundUrl, remoteBackground, R.drawable.nexus_logo)
@@ -3177,7 +3177,7 @@ class MainActivity : Activity() {
     private fun showAccessUnavailable(config: RemoteAppConfig) {
         AlertDialog.Builder(this)
             .setTitle("Acesso indisponível")
-            .setMessage("Este dispositivo não está autorizado para NEXUS. Verifique o MAC e o cadastro no painel.")
+            .setMessage("Este dispositivo não está autorizado para OMINUS. Verifique o MAC e o cadastro no painel.")
             .setPositiveButton("Configurar MAC") { _, _ -> showMacDialog() }
             .setNegativeButton("Fechar", null)
             .show()
@@ -3265,11 +3265,11 @@ class MainActivity : Activity() {
             "Sincronização e notificações" to { showSyncSettingsDialog() },
             "Testar API do servidor" to { showServerTestDialog() },
             "Verificar atualização" to { checkForAppUpdate() },
-            "Sobre o NEXUS" to { showAboutDialog() },
+            "Sobre o OMINUS" to { showAboutDialog() },
             "Sair do aplicativo" to { showExitConfirmation() },
         )
         val (dialog, list) = createCatalogDialog(
-            title = "Configurações do NEXUS",
+            title = "Configurações do OMINUS",
             subtitle = "Use cima/baixo e pressione OK para abrir uma opção",
             onBack = null,
         )
@@ -3462,7 +3462,7 @@ class MainActivity : Activity() {
 
     private fun showExitConfirmation() {
         AlertDialog.Builder(this)
-            .setTitle("Sair do NEXUS?")
+            .setTitle("Sair do OMINUS?")
             .setMessage("A reprodução será encerrada e o aplicativo será fechado.")
             .setNegativeButton("Cancelar", null)
             .setPositiveButton("Sair") { _, _ -> finishAffinity() }
@@ -3506,7 +3506,7 @@ class MainActivity : Activity() {
         appIntegration.checkUpdate(mac) { result ->
             runOnUiThread {
                 result.onSuccess { update ->
-                    val message = if (update.available) "Nova versão disponível: ${update.version}\\n${update.url}" else "O NEXUS já está atualizado."
+                    val message = if (update.available) "Nova versão disponível: ${update.version}\\n${update.url}" else "O OMINUS já está atualizado."
                     AlertDialog.Builder(this).setTitle("Atualização").setMessage(message).setPositiveButton("OK", null).show()
                 }.onFailure { Toast.makeText(this, "Não foi possível verificar agora", Toast.LENGTH_SHORT).show() }
             }
@@ -3516,8 +3516,8 @@ class MainActivity : Activity() {
     private fun showAboutDialog() {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrDefault("1.0.0")
         AlertDialog.Builder(this)
-            .setTitle("Sobre o NEXUS")
-            .setMessage("NEXUS TV Player\\nVersão $version\\n\\nPlayer IPTV nativo para Android TV e TV Box, com ativação por MAC, playlists M3U Plus, filmes, séries, rádio, EPG e comandos de voz.")
+            .setTitle("Sobre o OMINUS")
+            .setMessage("OMINUS TV Player\\nVersão $version\\n\\nPlayer IPTV nativo para Android TV e TV Box, com ativação por MAC, playlists M3U Plus, filmes, séries, rádio, EPG e comandos de voz.")
             .setPositiveButton("OK", null)
             .show()
     }

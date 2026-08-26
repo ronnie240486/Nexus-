@@ -12,9 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:banner="@drawable/nexus_banner"
-        android:label="NEXUS"
+        android:label="OMINUS"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NexusTvPlayer">
+        android:theme="@style/Theme.OminusTvPlayer">
         <activity
             android:name=".ActivationActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"

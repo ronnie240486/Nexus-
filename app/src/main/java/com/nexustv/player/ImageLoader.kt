@@ -36,7 +36,7 @@ class ImageLoader {
             readTimeout = 8_000
             instanceFollowRedirects = true
             useCaches = true
-            setRequestProperty("User-Agent", "NEXUSTV/1.0 AndroidTV")
+            setRequestProperty("User-Agent", "OMINUSTV/1.0 AndroidTV")
             setRequestProperty("Accept", "image/avif,image/webp,image/jpeg,image/png,*/*")
         }
         try {

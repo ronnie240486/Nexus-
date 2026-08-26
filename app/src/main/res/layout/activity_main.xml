@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.04"
-                android:text="NEXUS"
+                android:text="OMINUS"
                 android:textColor="@color/cyan"
                 android:textSize="9sp"
                 android:textStyle="bold" />
@@ -561,7 +561,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20dp"
                     android:letterSpacing="0.14"
-                    android:text="✕ NEXUS.TV"
+                    android:text="OMINUS.TV"
                     android:textColor="@color/cyan"
                     android:textSize="16sp"
                     android:textStyle="bold" />

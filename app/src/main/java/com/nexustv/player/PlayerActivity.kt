@@ -75,7 +75,7 @@ class PlayerActivity : Activity() {
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty()
         val streamUrl = intent.getStringExtra(EXTRA_URL).orEmpty()
         val mac = intent.getStringExtra(EXTRA_MAC).orEmpty()
-        findViewById<TextView>(R.id.playerTitle).text = "NEXUS  •  $title"
+        findViewById<TextView>(R.id.playerTitle).text = "OMINUS  •  $title"
         if (streamUrl.isBlank()) {
             showError("URL de reprodução não disponível")
             return

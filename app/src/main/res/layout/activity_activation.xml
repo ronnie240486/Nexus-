@@ -28,7 +28,7 @@
                 android:layout_width="104dp"
                 android:layout_height="104dp"
                 android:adjustViewBounds="true"
-                android:contentDescription="Logo NEXUS"
+                android:contentDescription="Logo OMINUS"
                 android:scaleType="fitCenter"
                 android:src="@drawable/nexus_logo_safe" />
 
@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:letterSpacing="0.14"
-                android:text="NEXUS"
+                android:text="OMINUS"
                 android:textColor="@color/cyan"
                 android:textSize="22sp"
                 android:textStyle="bold" />
