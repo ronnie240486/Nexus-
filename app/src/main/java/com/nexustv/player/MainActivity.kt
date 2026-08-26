@@ -1113,7 +1113,10 @@ class MainActivity : Activity() {
         voiceMode = false
         radioDialog?.dismiss()
         homePanel.visibility = View.VISIBLE
-        homePanel.post { findViewById<View>(R.id.homeNavHome).requestFocus() }
+        homePanel.post {
+            findViewById<View>(R.id.homeNavHome).requestFocus()
+            applyBrushFont()
+        }
         findViewById<View>(R.id.sideNavigation).visibility = View.GONE
         findViewById<View>(R.id.channelColumn).visibility = View.GONE
         findViewById<View>(R.id.previewScroll).visibility = View.GONE
@@ -1242,8 +1245,23 @@ class MainActivity : Activity() {
     // pra fonte padrao do sistema, sem erro nenhum). Carregar via
     // Typeface.createFromAsset funciona em qualquer versao do Android, sem
     // precisar de nenhuma biblioteca extra.
+    private var brushFontDiagnosticShown = false
+
     private fun applyBrushFont() {
-        val brush = runCatching { Typeface.createFromAsset(assets, "fonts/blowbrush.ttf") }.getOrNull() ?: return
+        val brush = runCatching { Typeface.createFromAsset(assets, "fonts/blowbrush.ttf") }.getOrElse { error ->
+            if (!brushFontDiagnosticShown) {
+                brushFontDiagnosticShown = true
+                Toast.makeText(this, "DIAG-FONTE: falhou ao carregar (${error.javaClass.simpleName}: ${error.message})", Toast.LENGTH_LONG).show()
+            }
+            null
+        }
+        if (brush == null) {
+            if (!brushFontDiagnosticShown) {
+                brushFontDiagnosticShown = true
+                Toast.makeText(this, "DIAG-FONTE: Typeface veio null sem excecao", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
         listOf(
             R.id.homeQuickCategoriesText,
             R.id.homeQuickLaunchesText,
