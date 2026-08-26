@@ -10,6 +10,7 @@ import android.net.Uri
 import android.speech.RecognizerIntent
 import android.graphics.Color
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
@@ -104,7 +105,7 @@ class MainActivity : Activity() {
     private lateinit var vodSection: View
     private lateinit var vodCards: LinearLayout
     private lateinit var vodTitle: TextView
-    private lateinit var homePanel: ScrollView
+    private lateinit var homePanel: View
     private lateinit var homeHeroLandscapeCard: FrameLayout
     private lateinit var homeHeroLandscapeImage: ImageView
     private lateinit var homeHeroLandscapeTitle: TextView
@@ -351,6 +352,7 @@ class MainActivity : Activity() {
         homePosterBTitle = findViewById(R.id.homePosterBTitle)
         homeStreamingRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         renderHomeStreamingRow()
+        applyBrushFont()
         listOf(
             findViewById<View>(R.id.homeNavHome),
             findViewById<View>(R.id.homeNavChannels),
@@ -1230,6 +1232,24 @@ class MainActivity : Activity() {
         activeStreamingDialog = dialog
         dialog.show()
         panel.post { wrapGrid.getChildAt(0)?.let { (it as? LinearLayout)?.getChildAt(0)?.requestFocus() } }
+    }
+
+    // android:fontFamily="@font/..." no XML so funciona automaticamente a
+    // partir do Android 8 (API 26). TV boxes baratas costumam rodar versoes
+    // mais antigas, onde esse atributo e silenciosamente ignorado (volta
+    // pra fonte padrao do sistema, sem erro nenhum). Carregar via
+    // Typeface.createFromAsset funciona em qualquer versao do Android, sem
+    // precisar de nenhuma biblioteca extra.
+    private fun applyBrushFont() {
+        val brush = runCatching { Typeface.createFromAsset(assets, "fonts/blowbrush.ttf") }.getOrNull() ?: return
+        listOf(
+            R.id.homeQuickCategoriesText,
+            R.id.homeQuickLaunchesText,
+            R.id.homeQuickStreamingsText,
+            R.id.homeQuickPopularText,
+        ).forEach { id ->
+            findViewById<TextView>(id)?.typeface = brush
+        }
     }
 
     private fun renderHomeStreamingRow() {

@@ -532,23 +532,17 @@
         </ScrollView>
     </LinearLayout>
 
-    <ScrollView
+    <LinearLayout
         android:id="@+id/homePanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#070B15"
-        android:fillViewport="true"
+        android:orientation="vertical"
         android:paddingStart="30dp"
         android:paddingTop="18dp"
         android:paddingEnd="30dp"
-        android:paddingBottom="24dp"
-        android:scrollbars="vertical"
+        android:paddingBottom="18dp"
         android:visibility="gone">
-        <LinearLayout
-            android:id="@+id/homeRoot"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
             <LinearLayout
                 android:id="@+id/homeTopBar"
                 android:layout_width="match_parent"
@@ -695,13 +689,14 @@
             <LinearLayout
                 android:id="@+id/homeHero"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:layout_marginTop="14dp"
                 android:orientation="horizontal">
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1.5"
                     android:layout_marginEnd="10dp"
                     android:orientation="vertical">
@@ -709,7 +704,8 @@
                     <FrameLayout
                         android:id="@+id/homeHeroLandscapeCard"
                         android:layout_width="match_parent"
-                        android:layout_height="330dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1.4"
                         android:background="@drawable/tv_banner"
                         android:foreground="@drawable/focus_ring_overlay"
                         android:clickable="true"
@@ -750,19 +746,21 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
                         android:layout_marginTop="10dp"
                         android:orientation="horizontal">
                         <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:layout_marginEnd="6dp"
                             android:orientation="vertical">
                             <LinearLayout
                                 android:id="@+id/homeQuickCategories"
                                 android:layout_width="match_parent"
-                                android:layout_height="100dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
                                 android:layout_marginBottom="8dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
@@ -773,6 +771,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:id="@+id/homeQuickCategoriesText"
                                     android:text="☰  DORAMAS"
                                     android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/white"
@@ -781,7 +780,8 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickLaunches"
                                 android:layout_width="match_parent"
-                                android:layout_height="100dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -791,6 +791,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:id="@+id/homeQuickLaunchesText"
                                     android:text="🔥  LANÇAMENTOS"
                                     android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/nexus_gold"
@@ -799,14 +800,15 @@
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:layout_marginStart="6dp"
                             android:orientation="vertical">
                             <LinearLayout
                                 android:id="@+id/homeQuickStreamings"
                                 android:layout_width="match_parent"
-                                android:layout_height="100dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
                                 android:layout_marginBottom="8dp"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
@@ -817,6 +819,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:id="@+id/homeQuickStreamingsText"
                                     android:text="▷  NOVELAS"
                                     android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/white"
@@ -825,7 +828,8 @@
                             <LinearLayout
                                 android:id="@+id/homeQuickPopular"
                                 android:layout_width="match_parent"
-                                android:layout_height="100dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
                                 android:background="@drawable/activation_input_background"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -835,6 +839,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:id="@+id/homeQuickPopularText"
                                     android:text="★  POPULARES"
                                     android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/nexus_gold"
@@ -847,7 +852,7 @@
                 <FrameLayout
                     android:id="@+id/homePosterACard"
                     android:layout_width="0dp"
-                    android:layout_height="548dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="0.75"
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/tv_banner"
@@ -881,7 +886,7 @@
                 <FrameLayout
                     android:id="@+id/homePosterBCard"
                     android:layout_width="0dp"
-                    android:layout_height="548dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="0.75"
                     android:background="@drawable/tv_banner"
                     android:foreground="@drawable/focus_ring_overlay"
@@ -911,6 +916,5 @@
                         android:textStyle="bold" />
                 </FrameLayout>
             </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
+    </LinearLayout>
 </FrameLayout>
