@@ -1165,18 +1165,71 @@ class MainActivity : Activity() {
     // no projeto.
     private data class StreamingOption(val label: String, val color: Long, val icon: String, val keywords: List<String>)
 
+    private var activeStreamingDialog: Dialog? = null
+
     private fun showStreamingPickerDialog() {
         (homeStreamingRow.parent as? ViewGroup)?.removeView(homeStreamingRow)
-        val scroll = HorizontalScrollView(this).apply {
-            isFillViewport = true
-            setPadding(dp(20), dp(24), dp(20), dp(24))
-            addView(homeStreamingRow)
+        homeStreamingRow.orientation = LinearLayout.HORIZONTAL
+
+        val wrapGrid = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
         }
-        AlertDialog.Builder(this)
-            .setTitle("Escolha seu streaming")
-            .setView(scroll)
-            .setNegativeButton("Fechar", null)
-            .show()
+        val rows = mutableListOf<LinearLayout>()
+        var currentRow: LinearLayout? = null
+        for (i in 0 until homeStreamingRow.childCount) {
+            if (i % 4 == 0) {
+                currentRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(-2, -2).apply { topMargin = if (i == 0) 0 else dp(18) }
+                }
+                rows.add(currentRow!!)
+            }
+            currentRow
+        }
+        // homeStreamingRow ja tem os children prontos (criados por renderHomeStreamingRow);
+        // move cada um pra dentro da grade em blocos de 4.
+        val children = (0 until homeStreamingRow.childCount).map { homeStreamingRow.getChildAt(it) }
+        homeStreamingRow.removeAllViews()
+        children.forEachIndexed { i, child ->
+            (child.parent as? ViewGroup)?.removeView(child)
+            rows[i / 4].addView(child)
+        }
+        rows.forEach { wrapGrid.addView(it) }
+
+        val title = TextView(this).apply {
+            text = "ESCOLHA SEU STREAMING"
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setPadding(0, 0, 0, dp(18))
+        }
+        val closeButton = TextView(this).apply {
+            text = "FECHAR"
+            setTextColor(Color.rgb(139, 118, 255))
+            textSize = 14f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            isFocusable = true
+            isClickable = true
+            gravity = Gravity.CENTER
+            setPadding(0, dp(20), 0, 0)
+        }
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(0xFF141433, 16f)
+            setPadding(dp(28), dp(24), dp(28), dp(24))
+            addView(title)
+            addView(wrapGrid)
+            addView(closeButton)
+        }
+
+        val dialog = Dialog(this, android.R.style.Theme_Translucent_NoTitleBar)
+        dialog.setContentView(panel)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(0xAA000000.toInt()))
+        closeButton.setOnClickListener { dialog.dismiss() }
+        dialog.setOnDismissListener { activeStreamingDialog = null }
+        activeStreamingDialog = dialog
+        dialog.show()
+        panel.post { wrapGrid.getChildAt(0)?.let { (it as? LinearLayout)?.getChildAt(0)?.requestFocus() } }
     }
 
     private fun renderHomeStreamingRow() {
@@ -1224,7 +1277,10 @@ class MainActivity : Activity() {
                 isClickable = true
                 layoutParams = LinearLayout.LayoutParams(dp(96), -2).apply { marginEnd = dp(14) }
                 setOnFocusChangeListener { view, hasFocus -> view.scaleX = if (hasFocus) 1.1f else 1f; view.scaleY = if (hasFocus) 1.1f else 1f }
-                setOnClickListener { openStreamingCategory(option) }
+                setOnClickListener {
+                    activeStreamingDialog?.dismiss()
+                    openStreamingCategory(option)
+                }
             }
             card.addView(badge)
             card.addView(caption)
