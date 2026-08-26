@@ -20,7 +20,13 @@ data class RadioStation(
 )
 
 class RadioRepository(private val context: Context) {
-    private val assetFiles = listOf("radio_stations_nacionais.csv")
+    private val assetFiles = listOf(
+        "radio_stations_nacionais.csv",
+        "radio_stations.csv",
+        "radio_stations_gospel.csv",
+        "radio_stations_hard_gospel_extra.csv",
+        "radio_stations_pop_rock_curated.csv",
+    )
     private val categoryOrder = listOf(
         "Nacionais • Pop",
         "Nacionais • Sertanejo",
@@ -41,7 +47,7 @@ class RadioRepository(private val context: Context) {
             .filter {
                 it.name.isNotBlank() &&
                     it.streamUrl.startsWith("http", true) &&
-                    it.country.equals("Brasil", true)
+                    (it.country.equals("Brasil", true) || it.country.equals("Brazil", true))
             }
             .distinctBy { it.streamUrl.lowercase(Locale.ROOT) }
             .sortedWith(compareBy({ order[it.category] ?: Int.MAX_VALUE }, { it.name.lowercase(Locale.ROOT) }))
