@@ -668,9 +668,10 @@
                 </HorizontalScrollView>
                 <TextView
                     android:id="@+id/homeNavSearch"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:layout_marginStart="10dp"
+                    android:background="@drawable/activation_input_background"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
@@ -679,8 +680,10 @@
                     android:textSize="20sp" />
                 <TextView
                     android:id="@+id/homeNavFavorites"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/activation_input_background"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
@@ -708,6 +711,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="260dp"
                         android:background="@drawable/tv_banner"
+                        android:foreground="@drawable/focus_ring_overlay"
                         android:clickable="true"
                         android:focusable="true">
                         <ImageView
@@ -847,6 +851,7 @@
                     android:layout_weight="0.75"
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/tv_banner"
+                    android:foreground="@drawable/focus_ring_overlay"
                     android:clickable="true"
                     android:focusable="true">
                     <ImageView
@@ -879,6 +884,7 @@
                     android:layout_height="446dp"
                     android:layout_weight="0.75"
                     android:background="@drawable/tv_banner"
+                    android:foreground="@drawable/focus_ring_overlay"
                     android:clickable="true"
                     android:focusable="true">
                     <ImageView

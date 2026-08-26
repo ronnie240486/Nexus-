@@ -632,6 +632,8 @@ class MainActivity : Activity() {
             findViewById<View>(R.id.homeNavKids),
             findViewById<View>(R.id.homeNavMovies),
             findViewById<View>(R.id.homeNavSeries),
+            findViewById<View>(R.id.homeNavSearch),
+            findViewById<View>(R.id.homeNavFavorites),
         )
         val cards = listOf(homeHeroLandscapeCard, homePosterACard, homePosterBCard)
         val grid = listOf(
