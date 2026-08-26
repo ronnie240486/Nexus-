@@ -63,6 +63,18 @@ class PlaylistRepository(private val context: Context) {
         private val SERIES_EPISODE_PATTERN = Regex("(?:^|[\\s._-])(?:E|EP|Episode|Epis[oó]dio)\\s*0*(\\d{1,4})", RegexOption.IGNORE_CASE)
         private val SERIES_COMBINED_PATTERN = Regex("(?:^|[\\s._-])S\\s*0*(\\d{1,2})\\s*E(?:P)?\\s*0*(\\d{1,4})", RegexOption.IGNORE_CASE)
         private val SEASON_NAME_PATTERN = Regex("\\bs\\d{1,2}\\b|\\btemporada\\s*\\d{1,2}", RegexOption.IGNORE_CASE)
+        // Estes eram recriados (compilados do zero) a cada item processado durante
+        // a importacao -- em catalogos de 100-250 mil itens, isso sozinho
+        // explicava boa parte da lentidao (compilar regex e caro, e estava
+        // rodando centenas de milhares de vezes em vez de uma so).
+        private val METADATA_NAME_SEASON_STRIP = Regex("\\s*(?:s\\s*\\d{1,2}\\s*e(?:p)?\\s*\\d{1,4}|temporada\\s*\\d{1,2}|season\\s*\\d{1,2}).*$")
+        private val METADATA_NAME_NON_ALNUM = Regex("[^\\p{L}\\p{N}]+")
+        private val DIGITS_ONLY = Regex("[^0-9]")
+        private val GROUP_EPISODE_STRIP = Regex("\\s*(?:[-|:]+\\s*)?(?:S\\s*0*\\d{1,2}\\s*E(?:P)?\\s*0*\\d{1,4}|(?:E|EP|Episode|Epis[oó]dio)\\s*0*\\d{1,4})\\b.*$", RegexOption.IGNORE_CASE)
+        private val GROUP_SEASON_STRIP = Regex("\\s*(?:[-|:]+\\s*)?(?:0*\\d{1,2}\\s*[ªº]?\\s*Temporada|Temporada\\s*0*\\d{1,2}|Season\\s*0*\\d{1,2})\\b.*$", RegexOption.IGNORE_CASE)
+        private val MULTISPACE = Regex("\\s{2,}")
+        private val DISPLAY_NAME_ATTR_STRIP = Regex("[\\\"']?\\s*(?:tvg-logo|group-title|tvg-id|tvg-name|tvg-type|tvg-chno|group)\\s*=.*$", RegexOption.IGNORE_CASE)
+        private val DISPLAY_NAME_QUOTE_STRIP = Regex("^[\\\"']+|[\\\"']+$")
     }
     private val executor = Executors.newSingleThreadExecutor()
     // A importacao (downloadAndCache) e uma tarefa longa (minutos, catalogos
@@ -414,8 +426,8 @@ class PlaylistRepository(private val context: Context) {
 
     private fun normalizeMetadataName(value: String): String = value
         .lowercase()
-        .replace(Regex("\\s*(?:s\\s*\\d{1,2}\\s*e(?:p)?\\s*\\d{1,4}|temporada\\s*\\d{1,2}|season\\s*\\d{1,2}).*$"), "")
-        .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
+        .replace(METADATA_NAME_SEASON_STRIP, "")
+        .replace(METADATA_NAME_NON_ALNUM, " ")
         .trim()
 
     private fun requestBody(endpoint: String): String? = runCatching {
@@ -707,11 +719,11 @@ class PlaylistRepository(private val context: Context) {
     private fun parseSeriesParts(name: String, attributes: Map<String, String>): SeriesParts {
         val explicitGroup = firstAttribute(attributes, "series-name", "series_title", "series-title", "series_group", "series-group", "show-name", "tv-show")
         val seasonFromAttribute = firstAttribute(attributes, "season", "season-num", "season_number", "season-number", "tvg-season")
-            .replace(Regex("[^0-9]"), "")
+            .replace(DIGITS_ONLY, "")
             .trimStart('0')
             .ifBlank { "1" }
         val episodeFromAttribute = firstAttribute(attributes, "episode", "episode-num", "episode_number", "episode-number", "tvg-episode")
-            .replace(Regex("[^0-9]"), "")
+            .replace(DIGITS_ONLY, "")
             .trimStart('0')
             .ifBlank { "" }
         val seasonMatch = SERIES_SEASON_PATTERN.find(name)
@@ -736,22 +748,16 @@ class PlaylistRepository(private val context: Context) {
 
     private fun normalizeSeriesGroup(value: String): String {
         val cleaned = cleanDisplayName(value)
-        val withoutEpisode = cleaned.replace(
-            Regex("\\s*(?:[-|:]+\\s*)?(?:S\\s*0*\\d{1,2}\\s*E(?:P)?\\s*0*\\d{1,4}|(?:E|EP|Episode|Epis[oó]dio)\\s*0*\\d{1,4})\\b.*$", RegexOption.IGNORE_CASE),
-            "",
-        )
-        val withoutSeason = withoutEpisode.replace(
-            Regex("\\s*(?:[-|:]+\\s*)?(?:0*\\d{1,2}\\s*[ªº]?\\s*Temporada|Temporada\\s*0*\\d{1,2}|Season\\s*0*\\d{1,2})\\b.*$", RegexOption.IGNORE_CASE),
-            "",
-        )
-        return withoutSeason.trim().trim('-', '–', '_', '.', '|').replace(Regex("\\s{2,}"), " ").ifBlank { cleaned }
+        val withoutEpisode = cleaned.replace(GROUP_EPISODE_STRIP, "")
+        val withoutSeason = withoutEpisode.replace(GROUP_SEASON_STRIP, "")
+        return withoutSeason.trim().trim('-', '–', '_', '.', '|').replace(MULTISPACE, " ").ifBlank { cleaned }
     }
 
     private fun cleanDisplayName(value: String): String = value
-        .replace(Regex("[\\\"']?\\s*(?:tvg-logo|group-title|tvg-id|tvg-name|tvg-type|tvg-chno|group)\\s*=.*$", RegexOption.IGNORE_CASE), "")
+        .replace(DISPLAY_NAME_ATTR_STRIP, "")
         .trim()
-        .replace(Regex("^[\\\"']+|[\\\"']+$"), "")
-        .replace(Regex("\\s{2,}"), " ")
+        .replace(DISPLAY_NAME_QUOTE_STRIP, "")
+        .replace(MULTISPACE, " ")
 
     private fun parseAttributesFast(info: String): Map<String, String> {
         val result = HashMap<String, String>(16)
