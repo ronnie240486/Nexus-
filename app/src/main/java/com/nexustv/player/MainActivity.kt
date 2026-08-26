@@ -1177,29 +1177,24 @@ class MainActivity : Activity() {
         homeStreamingRow.orientation = LinearLayout.HORIZONTAL
 
         val wrapGrid = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        val rows = mutableListOf<LinearLayout>()
-        var currentRow: LinearLayout? = null
-        for (i in 0 until homeStreamingRow.childCount) {
-            if (i % 4 == 0) {
-                currentRow = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(-2, -2).apply { topMargin = if (i == 0) 0 else dp(18) }
-                }
-                rows.add(currentRow!!)
-            }
-            currentRow
+            orientation = LinearLayout.HORIZONTAL
+            weightSum = homeStreamingRow.childCount.toFloat()
         }
         // homeStreamingRow ja tem os children prontos (criados por renderHomeStreamingRow);
-        // move cada um pra dentro da grade em blocos de 4.
+        // move cada um pra grade, um do lado do outro numa fileira so, com peso
+        // igual pra distribuir por toda a largura do popup (agora bem mais
+        // largo, ocupando quase a tela toda).
         val children = (0 until homeStreamingRow.childCount).map { homeStreamingRow.getChildAt(it) }
         homeStreamingRow.removeAllViews()
-        children.forEachIndexed { i, child ->
+        children.forEach { child ->
             (child.parent as? ViewGroup)?.removeView(child)
-            rows[i / 4].addView(child)
+            (child.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                params.width = 0
+                params.weight = 1f
+                params.marginEnd = 0
+            }
+            wrapGrid.addView(child)
         }
-        rows.forEach { wrapGrid.addView(it) }
 
         val title = TextView(this).apply {
             text = "ESCOLHA SEU STREAMING"
@@ -1222,14 +1217,19 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             background = rounded(0xFF141433, 16f)
             setPadding(dp(28), dp(24), dp(28), dp(24))
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             addView(title)
-            addView(wrapGrid)
+            addView(wrapGrid, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             addView(closeButton)
         }
 
         val dialog = Dialog(this, android.R.style.Theme_Translucent_NoTitleBar)
         dialog.setContentView(panel)
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(0xAA000000.toInt()))
+        dialog.window?.let { win ->
+            win.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(0xCC000000.toInt()))
+            win.setLayout((resources.displayMetrics.widthPixels * 0.92).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+            win.setGravity(Gravity.CENTER)
+        }
         closeButton.setOnClickListener { dialog.dismiss() }
         dialog.setOnDismissListener { activeStreamingDialog = null }
         activeStreamingDialog = dialog
