@@ -1273,47 +1273,62 @@ class MainActivity : Activity() {
     private fun renderHomeStreamingRow() {
         homeStreamingRow.removeAllViews()
         val options = listOf(
-            StreamingOption("Disney+", 0xFF1DB4E8, "D+", listOf("disney")),
-            StreamingOption("Netflix", 0xFFE50914, "N", listOf("netflix")),
-            StreamingOption("Prime Video", 0xFF00A8E1, "PV", listOf("amazon", "prime")),
-            StreamingOption("Apple TV+", 0xFFAAAAAA, "TV", listOf("apple tv", "apple")),
-            StreamingOption("HBO Max", 0xFF8B5CF6, "HBO", listOf("hbo", "max")),
-            StreamingOption("Crunchyroll", 0xFFF47521, "CR", listOf("crunchyroll")),
-            StreamingOption("Animes", 0xFF8B5CF6, "AN", listOf("anime")),
-            StreamingOption("Animações", 0xFF16A34A, "★", listOf("animação", "animacao", "desenho", "infantil")),
+            StreamingOption("Disney+", 0xFF4FD8FF, "D+", listOf("disney")),
+            StreamingOption("Netflix", 0xFFFF3B3B, "N", listOf("netflix")),
+            StreamingOption("Prime Video", 0xFF4FC3F7, "PV", listOf("amazon", "prime")),
+            StreamingOption("Apple TV+", 0xFFE0E0E0, "TV", listOf("apple tv", "apple")),
+            StreamingOption("HBO Max", 0xFFB388FF, "HBO", listOf("hbo", "max")),
+            StreamingOption("Crunchyroll", 0xFFFF8A50, "CR", listOf("crunchyroll")),
+            StreamingOption("Animes", 0xFFB388FF, "AN", listOf("anime")),
+            StreamingOption("Animações", 0xFF69F0AE, "★", listOf("animação", "animacao", "desenho", "infantil")),
         )
         options.forEach { option ->
-            val circleSize = dp(76)
-            val innerSize = dp(66)
+            val glowSize = dp(96)
+            val ringSize = dp(80)
+            val innerSize = dp(68)
             val badge = FrameLayout(this).apply {
-                layoutParams = LinearLayout.LayoutParams(circleSize, circleSize)
+                layoutParams = LinearLayout.LayoutParams(glowSize, glowSize)
+            }
+            // Halo neon: 3 aneis semitransparentes cada vez maiores, simulando
+            // o brilho difuso (blur) que a referencia mostra em volta do
+            // circulo principal.
+            listOf(0.95f to 18, 0.75f to 30, 0.55f to 55).forEach { (scale, alpha) ->
+                val size = (glowSize * scale).toInt()
+                badge.addView(View(this).apply {
+                    background = ovalDrawable((alpha.toLong() shl 24) or (option.color and 0xFFFFFF))
+                    layoutParams = FrameLayout.LayoutParams(size, size, Gravity.CENTER)
+                })
+            }
+            val ring = FrameLayout(this).apply {
+                layoutParams = FrameLayout.LayoutParams(ringSize, ringSize, Gravity.CENTER)
                 background = ovalDrawable(option.color)
             }
             val inner = TextView(this).apply {
                 text = option.icon
                 gravity = Gravity.CENTER
                 setTextColor(Color.WHITE)
-                textSize = 15f
+                textSize = 16f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
-                background = ovalDrawable(0xFF0B0F1C)
+                background = ovalDrawable(0xFF0A0A1F)
                 layoutParams = FrameLayout.LayoutParams(innerSize, innerSize, Gravity.CENTER)
             }
-            badge.addView(inner)
+            ring.addView(inner)
+            badge.addView(ring)
             val caption = TextView(this).apply {
                 text = option.label
                 gravity = Gravity.CENTER
                 setTextColor(Color.WHITE)
-                textSize = 12f
+                textSize = 13f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setPadding(0, dp(6), 0, 0)
-                layoutParams = LinearLayout.LayoutParams(dp(96), -2)
+                setPadding(0, dp(8), 0, 0)
+                layoutParams = LinearLayout.LayoutParams(dp(108), -2)
             }
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
                 isFocusable = true
                 isClickable = true
-                layoutParams = LinearLayout.LayoutParams(dp(96), -2).apply { marginEnd = dp(14) }
+                layoutParams = LinearLayout.LayoutParams(dp(108), -2).apply { marginEnd = dp(16) }
                 setOnFocusChangeListener { view, hasFocus -> view.scaleX = if (hasFocus) 1.1f else 1f; view.scaleY = if (hasFocus) 1.1f else 1f }
                 setOnClickListener {
                     activeStreamingDialog?.dismiss()
