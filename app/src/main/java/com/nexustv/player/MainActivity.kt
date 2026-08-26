@@ -626,12 +626,20 @@ class MainActivity : Activity() {
 
     private fun moveHomeDpad(focused: View, keyCode: Int): Boolean {
         val top = listOf(
-            findViewById<View>(R.id.homeNavHome),
             findViewById<View>(R.id.homeNavChannels),
+            findViewById<View>(R.id.homeNavHome),
+            findViewById<View>(R.id.homeNavStreamings),
+            findViewById<View>(R.id.homeNavKids),
             findViewById<View>(R.id.homeNavMovies),
             findViewById<View>(R.id.homeNavSeries),
         )
         val cards = listOf(homeHeroLandscapeCard, homePosterACard, homePosterBCard)
+        val grid = listOf(
+            findViewById<View>(R.id.homeQuickCategories),
+            findViewById<View>(R.id.homeQuickStreamings),
+            findViewById<View>(R.id.homeQuickLaunches),
+            findViewById<View>(R.id.homeQuickPopular),
+        )
         return when {
             focused in top -> {
                 val index = top.indexOf(focused)
@@ -649,6 +657,17 @@ class MainActivity : Activity() {
                     KeyEvent.KEYCODE_DPAD_LEFT -> if (index > 0) cards[index - 1].requestFocus() else true
                     KeyEvent.KEYCODE_DPAD_RIGHT -> if (index < cards.lastIndex) cards[index + 1].requestFocus() else true
                     KeyEvent.KEYCODE_DPAD_UP -> top.getOrNull(index.coerceAtMost(top.lastIndex))?.requestFocus() ?: true
+                    KeyEvent.KEYCODE_DPAD_DOWN -> if (index == 0) grid[0].requestFocus() else true
+                    else -> false
+                }
+            }
+            focused in grid -> {
+                val index = grid.indexOf(focused)
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_LEFT -> if (index % 2 == 1) grid[index - 1].requestFocus() else true
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> if (index % 2 == 0) grid[index + 1].requestFocus() else true
+                    KeyEvent.KEYCODE_DPAD_UP -> if (index >= 2) grid[index - 2].requestFocus() else cards[0].requestFocus()
+                    KeyEvent.KEYCODE_DPAD_DOWN -> if (index < 2) grid[index + 2].requestFocus() else true
                     else -> false
                 }
             }
