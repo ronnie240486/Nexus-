@@ -65,6 +65,14 @@ class PlaylistRepository(private val context: Context) {
         private val SEASON_NAME_PATTERN = Regex("\\bs\\d{1,2}\\b|\\btemporada\\s*\\d{1,2}", RegexOption.IGNORE_CASE)
     }
     private val executor = Executors.newSingleThreadExecutor()
+    // A importacao (downloadAndCache) e uma tarefa longa (minutos, catalogos
+    // grandes). Antes rodava na MESMA thread unica de 'executor', que tambem
+    // atende toda consulta rapida (queryPage, loadCached, etc.) -- enquanto a
+    // importacao processava um trecho grande, ela "sequestrava" essa thread
+    // inteira, e ate o verificador de progresso (que precisa de loadCached)
+    // ficava preso na fila, fazendo a tela parecer travada mesmo com o
+    // processo real ainda rodando. Import ganha sua propria thread agora.
+    private val importExecutor = Executors.newSingleThreadExecutor()
     private val cacheFile = File(context.filesDir, "catalog-cache.tsv.gz")
     private val metadata = context.getSharedPreferences("playlist_cache_metadata", Context.MODE_PRIVATE)
     private val database = CatalogDatabase(context)
@@ -83,7 +91,7 @@ class PlaylistRepository(private val context: Context) {
     }
 
     fun loadRemoteOnly(urls: List<String>, callback: (Result<CatalogSnapshot>) -> Unit) {
-        executor.execute { callback(runCatching { downloadAndCache(urls) }) }
+        importExecutor.execute { callback(runCatching { downloadAndCache(urls) }) }
     }
 
     fun loadIfChanged(urls: List<String>, callback: (Result<CatalogSnapshot>) -> Unit) = loadIfChanged(urls, {}, callback)
@@ -97,7 +105,7 @@ class PlaylistRepository(private val context: Context) {
         onCatalogReady: (CatalogDatabase.Stats) -> Unit,
         callback: (Result<CatalogSnapshot>) -> Unit,
     ) {
-        executor.execute {
+        importExecutor.execute {
             val result = runCatching {
                 val normalized = normalizeUrls(urls)
                 xtreamSource = normalized.asSequence().mapNotNull(::parseXtreamSource).firstOrNull()
