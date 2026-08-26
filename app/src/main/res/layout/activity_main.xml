@@ -770,9 +770,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="☰  CATEGORIAS"
+                                    android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
+                                    android:textSize="16sp" />
                             </LinearLayout>
                             <LinearLayout
                                 android:id="@+id/homeQuickLaunches"
@@ -788,9 +788,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="🔥  LANÇAMENTOS"
+                                    android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/nexus_gold"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
+                                    android:textSize="16sp" />
                             </LinearLayout>
                         </LinearLayout>
                         <LinearLayout
@@ -814,9 +814,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="▷  STREAMINGS"
+                                    android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
+                                    android:textSize="16sp" />
                             </LinearLayout>
                             <LinearLayout
                                 android:id="@+id/homeQuickPopular"
@@ -832,9 +832,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="★  POPULARES"
+                                    android:fontFamily="@font/blowbrush"
                                     android:textColor="@color/nexus_gold"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
+                                    android:textSize="16sp" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
