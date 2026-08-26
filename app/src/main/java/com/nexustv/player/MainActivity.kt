@@ -105,9 +105,15 @@ class MainActivity : Activity() {
     private lateinit var vodCards: LinearLayout
     private lateinit var vodTitle: TextView
     private lateinit var homePanel: ScrollView
-    private lateinit var homeHeroImage: ImageView
-    private lateinit var homeHeroTitle: TextView
-    private lateinit var homeHeroDescription: TextView
+    private lateinit var homeHeroLandscapeCard: FrameLayout
+    private lateinit var homeHeroLandscapeImage: ImageView
+    private lateinit var homeHeroLandscapeTitle: TextView
+    private lateinit var homePosterACard: FrameLayout
+    private lateinit var homePosterAImage: ImageView
+    private lateinit var homePosterATitle: TextView
+    private lateinit var homePosterBCard: FrameLayout
+    private lateinit var homePosterBImage: ImageView
+    private lateinit var homePosterBTitle: TextView
     private lateinit var homeMoviesCard: FrameLayout
     private lateinit var homeStreamingRow: LinearLayout
     private lateinit var homeSeriesCard: FrameLayout
@@ -346,9 +352,15 @@ class MainActivity : Activity() {
         vodCards = findViewById(R.id.vodCards)
         vodTitle = findViewById(R.id.vodTitle)
         homePanel = findViewById(R.id.homePanel)
-        homeHeroImage = findViewById(R.id.homeHeroImage)
-        homeHeroTitle = findViewById(R.id.homeHeroTitle)
-        homeHeroDescription = findViewById(R.id.homeHeroDescription)
+        homeHeroLandscapeCard = findViewById(R.id.homeHeroLandscapeCard)
+        homeHeroLandscapeImage = findViewById(R.id.homeHeroLandscapeImage)
+        homeHeroLandscapeTitle = findViewById(R.id.homeHeroLandscapeTitle)
+        homePosterACard = findViewById(R.id.homePosterACard)
+        homePosterAImage = findViewById(R.id.homePosterAImage)
+        homePosterATitle = findViewById(R.id.homePosterATitle)
+        homePosterBCard = findViewById(R.id.homePosterBCard)
+        homePosterBImage = findViewById(R.id.homePosterBImage)
+        homePosterBTitle = findViewById(R.id.homePosterBTitle)
         homeMoviesCard = findViewById(R.id.homeMoviesCard)
         homeStreamingRow = findViewById(R.id.homeStreamingRow)
         renderHomeStreamingRow()
@@ -369,6 +381,10 @@ class MainActivity : Activity() {
             findViewById<View>(R.id.homeNavChannels),
             findViewById<View>(R.id.homeNavMovies),
             findViewById<View>(R.id.homeNavSeries),
+            findViewById<View>(R.id.homeNavStreamings),
+            findViewById<View>(R.id.homeNavKids),
+            findViewById<View>(R.id.homeNavSearch),
+            findViewById<View>(R.id.homeNavFavorites),
         ).forEach { navItem ->
             navItem.isFocusable = true
             navItem.isClickable = true
@@ -378,6 +394,17 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.homeNavChannels).setOnClickListener { switchSection(MediaKind.LIVE) }
         findViewById<View>(R.id.homeNavMovies).setOnClickListener { switchSection(MediaKind.MOVIE) }
         findViewById<View>(R.id.homeNavSeries).setOnClickListener { switchSection(MediaKind.SERIES) }
+        findViewById<View>(R.id.homeNavStreamings).setOnClickListener { homeStreamingRow.getChildAt(0)?.requestFocus() }
+        findViewById<View>(R.id.homeNavKids).setOnClickListener { openHomeQuickCategory(listOf("kids", "infantil", "desenho", "animação", "animacao"), "Kids") }
+        findViewById<View>(R.id.homeNavSearch).setOnClickListener { showSearchDialog() }
+        findViewById<View>(R.id.homeNavFavorites).setOnClickListener { switchFavorites() }
+        findViewById<View>(R.id.homeQuickCategories).setOnClickListener { switchSection(MediaKind.MOVIE) }
+        findViewById<View>(R.id.homeQuickStreamings).setOnClickListener { homeStreamingRow.getChildAt(0)?.requestFocus() }
+        findViewById<View>(R.id.homeQuickLaunches).setOnClickListener { openHomeQuickCategory(listOf("lançamento", "lancamento"), "Lançamentos") }
+        findViewById<View>(R.id.homeQuickPopular).setOnClickListener {
+            switchSection(MediaKind.MOVIE)
+            applySortMode(SortMode.RATING)
+        }
         searchHint.isFocusable = true
         searchHint.isClickable = true
         searchHint.setOnClickListener { showSearchDialog() }
@@ -1093,80 +1120,49 @@ class MainActivity : Activity() {
         renderHomeHero()
     }
 
-    private var heroTypewriterRunnable: Runnable? = null
-    private var heroToneGenerator: android.media.ToneGenerator? = null
-
     private fun stopHeroEffects() {
-        heroTypewriterRunnable?.let { mainHandler.removeCallbacks(it) }
-        heroTypewriterRunnable = null
-        runCatching { heroToneGenerator?.release() }
-        heroToneGenerator = null
-        homeHeroImage.clearAnimation()
-        homeHeroImage.animate().cancel()
+        // Mantido por compatibilidade com os pontos que chamam essa funcao ao
+        // sair da Home; o novo layout nao usa mais animacao/maquina de
+        // escrever no banner, entao nao ha nada pra parar por enquanto.
     }
 
     private fun renderHomeHero() {
-        homeHeroImage.setImageResource(R.drawable.nexus_home_hero)
-        startHeroBackgroundAnimation()
-        homeHeroDescription.text = "Conteúdos selecionados para você assistir com qualidade e praticidade."
-        startHeroTypewriter("Aqui você encontra os melhores canais, filmes e séries")
+        homeHeroLandscapeImage.setImageResource(R.drawable.nexus_home_hero)
+        homeHeroLandscapeTitle.text = "Aqui você encontra os melhores filmes"
+        homePosterATitle.text = ""
+        homePosterBTitle.text = ""
         renderHomeFeaturedCards()
+        renderHomeHeroCarousel()
     }
 
-    private fun startHeroBackgroundAnimation() {
-        homeHeroImage.clearAnimation()
-        homeHeroImage.scaleX = 1f
-        homeHeroImage.scaleY = 1f
-        homeHeroImage.translationX = 0f
-        // Efeito "Ken Burns": zoom e deslocamento lentos e continuos, dando
-        // sensacao de fundo vivo em vez de imagem estatica.
-        homeHeroImage.animate().cancel()
-        val zoom = android.animation.ObjectAnimator.ofFloat(homeHeroImage, "scaleX", 1f, 1.08f).apply {
-            duration = 12_000L
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
+    private fun renderHomeHeroCarousel() {
+        if (!databaseBackedCatalog) return
+        val hidden = hiddenGroups()
+        val keywords = listOf("lançamento", "lancamento")
+        fun applyLandscape(entry: CatalogEntry) {
+            homeHeroLandscapeTitle.text = entry.name
+            val source = entry.backdropUrl.ifBlank { entry.logoUrl }
+            if (source.isNotBlank()) imageLoader.load(source, homeHeroLandscapeImage, R.drawable.nexus_home_hero)
+            homeHeroLandscapeCard.setOnClickListener { openFeaturedEntry(entry) }
         }
-        val zoomY = android.animation.ObjectAnimator.ofFloat(homeHeroImage, "scaleY", 1f, 1.08f).apply {
-            duration = 12_000L
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
+        fun applyPoster(entry: CatalogEntry, image: ImageView, title: TextView, card: FrameLayout) {
+            title.text = entry.name
+            val source = entry.logoUrl.ifBlank { entry.backdropUrl }
+            if (source.isNotBlank()) imageLoader.load(source, image, R.drawable.home_movies_card)
+            card.setOnClickListener { openFeaturedEntry(entry) }
         }
-        val pan = android.animation.ObjectAnimator.ofFloat(homeHeroImage, "translationX", 0f, -30f).apply {
-            duration = 14_000L
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-        }
-        zoom.start(); zoomY.start(); pan.start()
-    }
-
-    // Escreve o titulo letra por letra, como numa maquina de escrever, com um
-    // clique curto e discreto a cada caractere (ToneGenerator, sem precisar
-    // de arquivo de audio).
-    private fun startHeroTypewriter(fullText: String) {
-        heroTypewriterRunnable?.let { mainHandler.removeCallbacks(it) }
-        homeHeroTitle.text = ""
-        var index = 0
-        val tone = runCatching {
-            android.media.ToneGenerator(android.media.AudioManager.STREAM_SYSTEM, 45).also { heroToneGenerator = it }
-        }.getOrNull()
-        val runnable = object : Runnable {
-            override fun run() {
-                if (index >= fullText.length) {
-                    tone?.release()
-                    heroToneGenerator = null
-                    return
+        repository.mostRecentInGroups(MediaKind.MOVIE, keywords, hidden) { fromGroup ->
+            val landscapeEntry = fromGroup
+            if (landscapeEntry != null) runOnUiThread { applyLandscape(landscapeEntry) }
+            repository.mostRecent(MediaKind.MOVIE, hidden) { entryA ->
+                if (entryA != null) runOnUiThread {
+                    if (landscapeEntry == null) applyLandscape(entryA) else applyPoster(entryA, homePosterAImage, homePosterATitle, homePosterACard)
                 }
-                index++
-                homeHeroTitle.text = fullText.substring(0, index)
-                val current = fullText[index - 1]
-                if (!current.isWhitespace()) {
-                    runCatching { tone?.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 12) }
-                }
-                mainHandler.postDelayed(this, 45L)
             }
         }
-        heroTypewriterRunnable = runnable
-        mainHandler.post(runnable)
+        repository.mostRecent(MediaKind.SERIES, hidden) { entryB ->
+            if (entryB != null) runOnUiThread { applyPoster(entryB, homePosterBImage, homePosterBTitle, homePosterBCard) }
+        }
     }
 
     // Cores meramente decorativas (não são os logos reais das marcas, só uma
@@ -1227,13 +1223,21 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun openHomeQuickCategory(keywords: List<String>, label: String) {
+        openCategoryByKeywords(keywords, label)
+    }
+
     private fun openStreamingCategory(option: StreamingOption) {
+        openCategoryByKeywords(option.keywords, option.label)
+    }
+
+    private fun openCategoryByKeywords(keywords: List<String>, label: String) {
         if (!databaseBackedCatalog) { Toast.makeText(this, "Catálogo ainda carregando, tente novamente em instantes.", Toast.LENGTH_SHORT).show(); return }
         val hidden = hiddenGroups()
         fun tryKind(kind: MediaKind, onMiss: () -> Unit) {
             repository.queryGroups(kind, hidden, includeAdult = false) { groups ->
                 runOnUiThread {
-                    val match = groups.firstOrNull { group -> option.keywords.any { keyword -> group.contains(keyword, ignoreCase = true) } }
+                    val match = groups.firstOrNull { group -> keywords.any { keyword -> group.contains(keyword, ignoreCase = true) } }
                     if (match != null) {
                         switchSection(kind, autoSelectFirst = false)
                         selectedCategory = match
@@ -1246,9 +1250,9 @@ class MainActivity : Activity() {
                 }
             }
         }
-        tryKind(MediaKind.SERIES) {
-            tryKind(MediaKind.MOVIE) {
-                Toast.makeText(this, "Nenhuma categoria de \"${option.label}\" encontrada no seu catálogo.", Toast.LENGTH_SHORT).show()
+        tryKind(MediaKind.MOVIE) {
+            tryKind(MediaKind.SERIES) {
+                Toast.makeText(this, "Nenhuma categoria de \"$label\" encontrada no seu catálogo.", Toast.LENGTH_SHORT).show()
             }
         }
     }
