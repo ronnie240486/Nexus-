@@ -462,8 +462,14 @@
                             android:id="@+id/nowLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="NOW PLAYING"
-                            android:textColor="@color/magenta"
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/agora_banner"
+                            android:paddingStart="12dp"
+                            android:paddingTop="8dp"
+                            android:paddingEnd="12dp"
+                            android:paddingBottom="8dp"
+                            android:text="AGORA"
+                            android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
