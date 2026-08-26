@@ -16,3 +16,4 @@ A inspiração visual (cores, layout de tela inicial com carrossel de destaques 
 
 O workflow do GitHub Actions (`.github/workflows/build-apk.yml`) builda automaticamente a cada push e disponibiliza o APK como artefato (`app-debug-apk`) na aba Actions.
 
+// build trigger test
