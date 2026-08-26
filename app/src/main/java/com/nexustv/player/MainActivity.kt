@@ -114,20 +114,8 @@ class MainActivity : Activity() {
     private lateinit var homePosterBCard: FrameLayout
     private lateinit var homePosterBImage: ImageView
     private lateinit var homePosterBTitle: TextView
-    private lateinit var homeMoviesCard: FrameLayout
     private lateinit var homeStreamingRow: LinearLayout
-    private lateinit var homeSeriesCard: FrameLayout
-    private lateinit var homeCartoonsCard: FrameLayout
-    private lateinit var homeMoviesCardImage: ImageView
-    private lateinit var homeMoviesCardTitle: TextView
-    private lateinit var homeSeriesCardImage: ImageView
-    private lateinit var homeSeriesCardTitle: TextView
-    private lateinit var homeCartoonsCardImage: ImageView
-    private lateinit var homeCartoonsCardTitle: TextView
-    private lateinit var homeCartoonsCardBadge: TextView
-    private var featuredMovie: CatalogEntry? = null
-    private var featuredSeries: CatalogEntry? = null
-    private var mostWatchedEntry: CatalogEntry? = null
+
     private var homeMode = false
     private var miniPlayer: ExoPlayer? = null
     private var miniPlayerView: PlayerView? = null
@@ -361,21 +349,8 @@ class MainActivity : Activity() {
         homePosterBCard = findViewById(R.id.homePosterBCard)
         homePosterBImage = findViewById(R.id.homePosterBImage)
         homePosterBTitle = findViewById(R.id.homePosterBTitle)
-        homeMoviesCard = findViewById(R.id.homeMoviesCard)
-        homeStreamingRow = findViewById(R.id.homeStreamingRow)
+        homeStreamingRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         renderHomeStreamingRow()
-        homeSeriesCard = findViewById(R.id.homeSeriesCard)
-        homeCartoonsCard = findViewById(R.id.homeCartoonsCard)
-        homeMoviesCardImage = findViewById(R.id.homeMoviesCardImage)
-        homeMoviesCardTitle = findViewById(R.id.homeMoviesCardTitle)
-        homeSeriesCardImage = findViewById(R.id.homeSeriesCardImage)
-        homeSeriesCardTitle = findViewById(R.id.homeSeriesCardTitle)
-        homeCartoonsCardImage = findViewById(R.id.homeCartoonsCardImage)
-        homeCartoonsCardTitle = findViewById(R.id.homeCartoonsCardTitle)
-        homeCartoonsCardBadge = findViewById(R.id.homeCartoonsCardBadge)
-        homeMoviesCard.setOnClickListener { featuredMovie?.let { openFeaturedEntry(it) } ?: switchSection(MediaKind.MOVIE) }
-        homeSeriesCard.setOnClickListener { featuredSeries?.let { openFeaturedEntry(it) } ?: switchSection(MediaKind.SERIES) }
-        homeCartoonsCard.setOnClickListener { mostWatchedEntry?.let { openFeaturedEntry(it) } ?: switchSection(MediaKind.LIVE) }
         listOf(
             findViewById<View>(R.id.homeNavHome),
             findViewById<View>(R.id.homeNavChannels),
@@ -394,12 +369,12 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.homeNavChannels).setOnClickListener { switchSection(MediaKind.LIVE) }
         findViewById<View>(R.id.homeNavMovies).setOnClickListener { switchSection(MediaKind.MOVIE) }
         findViewById<View>(R.id.homeNavSeries).setOnClickListener { switchSection(MediaKind.SERIES) }
-        findViewById<View>(R.id.homeNavStreamings).setOnClickListener { homeStreamingRow.getChildAt(0)?.requestFocus() }
+        findViewById<View>(R.id.homeNavStreamings).setOnClickListener { showStreamingPickerDialog() }
         findViewById<View>(R.id.homeNavKids).setOnClickListener { openHomeQuickCategory(listOf("kids", "infantil", "desenho", "animação", "animacao"), "Kids") }
         findViewById<View>(R.id.homeNavSearch).setOnClickListener { showSearchDialog() }
         findViewById<View>(R.id.homeNavFavorites).setOnClickListener { switchFavorites() }
         findViewById<View>(R.id.homeQuickCategories).setOnClickListener { switchSection(MediaKind.MOVIE) }
-        findViewById<View>(R.id.homeQuickStreamings).setOnClickListener { homeStreamingRow.getChildAt(0)?.requestFocus() }
+        findViewById<View>(R.id.homeQuickStreamings).setOnClickListener { showStreamingPickerDialog() }
         findViewById<View>(R.id.homeQuickLaunches).setOnClickListener { openHomeQuickCategory(listOf("lançamento", "lancamento"), "Lançamentos") }
         findViewById<View>(R.id.homeQuickPopular).setOnClickListener {
             switchSection(MediaKind.MOVIE)
@@ -656,7 +631,7 @@ class MainActivity : Activity() {
             findViewById<View>(R.id.homeNavMovies),
             findViewById<View>(R.id.homeNavSeries),
         )
-        val cards = listOf(homeMoviesCard, homeSeriesCard, homeCartoonsCard)
+        val cards = listOf(homeHeroLandscapeCard, homePosterACard, homePosterBCard)
         return when {
             focused in top -> {
                 val index = top.indexOf(focused)
@@ -1131,7 +1106,6 @@ class MainActivity : Activity() {
         homeHeroLandscapeTitle.text = "Aqui você encontra os melhores filmes"
         homePosterATitle.text = ""
         homePosterBTitle.text = ""
-        renderHomeFeaturedCards()
         renderHomeHeroCarousel()
     }
 
@@ -1169,6 +1143,20 @@ class MainActivity : Activity() {
     // cor de fundo lembrando cada serviço) já que não temos os ícones oficiais
     // no projeto.
     private data class StreamingOption(val label: String, val color: Long, val icon: String, val keywords: List<String>)
+
+    private fun showStreamingPickerDialog() {
+        (homeStreamingRow.parent as? ViewGroup)?.removeView(homeStreamingRow)
+        val scroll = HorizontalScrollView(this).apply {
+            isFillViewport = true
+            setPadding(dp(20), dp(24), dp(20), dp(24))
+            addView(homeStreamingRow)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Escolha seu streaming")
+            .setView(scroll)
+            .setNegativeButton("Fechar", null)
+            .show()
+    }
 
     private fun renderHomeStreamingRow() {
         homeStreamingRow.removeAllViews()
@@ -1254,61 +1242,6 @@ class MainActivity : Activity() {
             tryKind(MediaKind.SERIES) {
                 Toast.makeText(this, "Nenhuma categoria de \"$label\" encontrada no seu catálogo.", Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    private fun renderHomeFeaturedCards() {
-        if (!databaseBackedCatalog) return
-        val hidden = hiddenGroups()
-        val movieKeywords = listOf("lançamento", "lancamento", "animação", "animacao", "desenho")
-        val seriesKeywords = listOf("lançamento", "lancamento", "novidade")
-        repository.mostRecentInGroups(MediaKind.MOVIE, movieKeywords, hidden) { fromGroup ->
-            if (fromGroup != null) {
-                applyFeaturedMovie(fromGroup)
-            } else {
-                repository.mostRecent(MediaKind.MOVIE, hidden) { entry -> if (entry != null) applyFeaturedMovie(entry) }
-            }
-        }
-        repository.mostRecentInGroups(MediaKind.SERIES, seriesKeywords, hidden) { fromGroup ->
-            if (fromGroup != null) {
-                applyFeaturedSeries(fromGroup)
-            } else {
-                repository.mostRecent(MediaKind.SERIES, hidden) { entry -> if (entry != null) applyFeaturedSeries(entry) }
-            }
-        }
-        val watchedKey = mostWatchedChannelKey()
-        if (watchedKey == null) {
-            homeCartoonsCardBadge.text = "DESENHOS EM DESTAQUE"
-            homeCartoonsCardTitle.text = "Desenhos em destaque"
-            mostWatchedEntry = null
-            return
-        }
-        repository.byKey(watchedKey) { entry ->
-            runOnUiThread {
-                if (!homeMode || entry == null) return@runOnUiThread
-                mostWatchedEntry = entry
-                homeCartoonsCardBadge.text = "CANAL MAIS ASSISTIDO"
-                homeCartoonsCardTitle.text = entry.name
-                imageLoader.load(entry.logoUrl, homeCartoonsCardImage, R.drawable.home_cartoons_card)
-            }
-        }
-    }
-
-    private fun applyFeaturedMovie(entry: CatalogEntry) {
-        runOnUiThread {
-            if (!homeMode) return@runOnUiThread
-            featuredMovie = entry
-            homeMoviesCardTitle.text = entry.name
-            imageLoader.load(entry.backdropUrl.ifBlank { entry.logoUrl }, homeMoviesCardImage, R.drawable.home_movies_card)
-        }
-    }
-
-    private fun applyFeaturedSeries(entry: CatalogEntry) {
-        runOnUiThread {
-            if (!homeMode) return@runOnUiThread
-            featuredSeries = entry
-            homeSeriesCardTitle.text = seriesTitle(entry)
-            imageLoader.load(entry.backdropUrl.ifBlank { entry.logoUrl }, homeSeriesCardImage, R.drawable.home_series_card)
         }
     }
 
