@@ -3202,6 +3202,7 @@ class MainActivity : Activity() {
         // por isso é seguro chamar mesmo com o usuário navegando ativamente.
         if (pageLoading) return
         pageFinished = false
+        pageRequestId++
         loadNextPage()
     }
 
