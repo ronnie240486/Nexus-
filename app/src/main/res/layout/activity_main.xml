@@ -728,19 +728,19 @@
                             android:layout_margin="12dp"
                             android:text="FILME EM DESTAQUE"
                             android:textColor="@color/cyan"
-                            android:textSize="10sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                         <TextView
                             android:id="@+id/homeHeroLandscapeTitle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_gravity="bottom|start"
-                            android:layout_margin="14dp"
+                            android:layout_margin="16dp"
                             android:maxLines="2"
                             android:ellipsize="end"
                             android:text="Aqui você encontra os melhores filmes"
                             android:textColor="@color/white"
-                            android:textSize="26sp"
+                            android:textSize="32sp"
                             android:textStyle="bold" />
                     </FrameLayout>
 

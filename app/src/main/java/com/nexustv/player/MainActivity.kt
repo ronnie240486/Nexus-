@@ -1121,7 +1121,7 @@ class MainActivity : Activity() {
         }
         fun applyPoster(entry: CatalogEntry, image: ImageView, title: TextView, card: FrameLayout) {
             title.text = entry.name
-            val source = entry.logoUrl.ifBlank { entry.backdropUrl }
+            val source = entry.backdropUrl.ifBlank { entry.logoUrl }
             if (source.isNotBlank()) imageLoader.load(source, image, R.drawable.home_movies_card)
             card.setOnClickListener { openFeaturedEntry(entry) }
         }
