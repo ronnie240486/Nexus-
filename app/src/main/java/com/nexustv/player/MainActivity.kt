@@ -1384,7 +1384,12 @@ class MainActivity : Activity() {
         }
         tryKind(MediaKind.MOVIE) {
             tryKind(MediaKind.SERIES) {
-                Toast.makeText(this, "Nenhuma categoria de \"$label\" encontrada no seu catálogo.", Toast.LENGTH_SHORT).show()
+                val message = if (catalogImportInProgress) {
+                    "Ainda carregando \"$label\" (o catálogo está sendo importado) — tente de novo em alguns segundos."
+                } else {
+                    "Nenhuma categoria de \"$label\" encontrada no seu catálogo."
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -3230,7 +3235,14 @@ class MainActivity : Activity() {
         } else {
             "Olá, usuário  •  ${snapshot.totalCount} itens"
         }
-        if (!wasHome && !radioMode) {
+        if (wasHome) {
+            // Home nao tinha nenhuma atualizacao periodica -- os cards de
+            // destaque (filme/serie em destaque, posteres) ficavam vazios ou
+            // com o que existia no exato instante em que a Home foi aberta,
+            // sem nunca preencher com o que ia chegando durante a importacao
+            // em segundo plano.
+            renderHomeHeroCarousel()
+        } else if (!radioMode) {
             // As categorias (pílulas) ainda são reconstruídas inteiras sempre que
             // renderCategories() roda (mesmo quando o conteúdo final é igual),
             // então isso continua pausado enquanto o usuário navega nelas para
