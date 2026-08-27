@@ -69,6 +69,7 @@ class MainActivity : Activity() {
     private lateinit var videoPreview: FrameLayout
     private lateinit var previewScroll: ScrollView
     private lateinit var categoryList: LinearLayout
+    private lateinit var sortRow: LinearLayout
     private lateinit var sortRecentButton: TextView
     private lateinit var sortAlphaButton: TextView
     private lateinit var sortRatingButton: TextView
@@ -289,6 +290,7 @@ class MainActivity : Activity() {
         videoPreview = findViewById(R.id.videoPreview)
         previewScroll = findViewById(R.id.previewScroll)
         categoryList = findViewById(R.id.categoryList)
+        sortRow = findViewById(R.id.sortRow)
         sortRecentButton = findViewById(R.id.sortRecentButton)
         sortAlphaButton = findViewById(R.id.sortAlphaButton)
         sortRatingButton = findViewById(R.id.sortRatingButton)
@@ -539,6 +541,18 @@ class MainActivity : Activity() {
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> if (index >= categoryList.childCount - 1) focusFirstCatalogItem() else focusCategoryAt(index + 1)
                 KeyEvent.KEYCODE_DPAD_UP -> searchHint.requestFocus()
+                KeyEvent.KEYCODE_DPAD_DOWN -> sortRow.getChildAt(1)?.requestFocus() ?: focusFirstCatalogItem()
+                else -> false
+            }
+        }
+        if (isWithin(focused, sortRow)) {
+            // Filtra so os botoes de verdade (pula o TextView "Ordenar:" fixo, que nao e clicavel).
+            val buttons = (0 until sortRow.childCount).map { sortRow.getChildAt(it) }.filter { it.isFocusable }
+            val index = buttons.indexOf(focused)
+            return when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> if (index <= 0) true else buttons[index - 1].requestFocus()
+                KeyEvent.KEYCODE_DPAD_RIGHT -> if (index >= buttons.lastIndex) true else buttons[index + 1].requestFocus()
+                KeyEvent.KEYCODE_DPAD_UP -> focusFirstCategory()
                 KeyEvent.KEYCODE_DPAD_DOWN -> focusFirstCatalogItem()
                 else -> false
             }
@@ -549,7 +563,7 @@ class MainActivity : Activity() {
             return when (keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> focusFirstCategory() || focusNavigationForCurrentSection()
                 KeyEvent.KEYCODE_DPAD_RIGHT -> focusPreview() || focusFirstAction()
-                KeyEvent.KEYCODE_DPAD_UP -> if (position <= 0) focusFirstCategory() || searchHint.requestFocus() else moveCatalogFocus(-1)
+                KeyEvent.KEYCODE_DPAD_UP -> if (position <= 0) (sortRow.getChildAt(1)?.requestFocus() ?: (focusFirstCategory() || searchHint.requestFocus())) else moveCatalogFocus(-1)
                 KeyEvent.KEYCODE_DPAD_DOWN -> moveCatalogFocus(1)
                 else -> false
             }

@@ -718,7 +718,8 @@ class PlaylistRepository(private val context: Context) {
 
     private fun parseSeriesParts(name: String, attributes: Map<String, String>): SeriesParts {
         val explicitGroup = firstAttribute(attributes, "series-name", "series_title", "series-title", "series_group", "series-group", "show-name", "tv-show")
-        val seasonFromAttribute = firstAttribute(attributes, "season", "season-num", "season_number", "season-number", "tvg-season")
+        val seasonAttributeValue = firstAttribute(attributes, "season", "season-num", "season_number", "season-number", "tvg-season")
+        val seasonFromAttribute = seasonAttributeValue
             .replace(DIGITS_ONLY, "")
             .trimStart('0')
             .ifBlank { "1" }
@@ -728,7 +729,7 @@ class PlaylistRepository(private val context: Context) {
             .ifBlank { "" }
         val seasonMatch = SERIES_SEASON_PATTERN.find(name)
         val combinedMatch = SERIES_COMBINED_PATTERN.find(name)
-        val season = if (firstAttribute(attributes, "season", "season-num", "season_number", "season-number", "tvg-season").isNotBlank()) {
+        val season = if (seasonAttributeValue.isNotBlank()) {
             seasonFromAttribute
         } else {
             (seasonMatch?.groupValues?.drop(1)?.firstOrNull { it.isNotBlank() } ?: "1").trimStart('0').ifBlank { "1" }
@@ -794,7 +795,7 @@ class PlaylistRepository(private val context: Context) {
     }
 
     private fun firstAttribute(attributes: Map<String, String>, vararg keys: String): String {
-        keys.forEach { key -> attributes[key.lowercase()]?.trim()?.takeIf { it.isNotBlank() }?.let { return it } }
+        keys.forEach { key -> attributes[key]?.trim()?.takeIf { it.isNotBlank() }?.let { return it } }
         return ""
     }
 
