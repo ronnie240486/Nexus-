@@ -12,7 +12,26 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-private const val RENCIA_BASE_URL = "https://renciaapp.manus.space"
+// Painel atual (Railway). O Manus é só reserva: o domínio antigo não fala mais a API de verdade.
+private const val RENCIA_BASE_URL = "https://renciaapp-production.up.railway.app"
+private const val RENCIA_BASE_URL_FALLBACK = "https://renciaapp.manus.space"
+private const val OMINUS_APP_ID = "ominus"
+/** Sentinela que o painel entende como "saiu do player": limpa o "Assistindo" na hora. */
+const val HEARTBEAT_IDLE_SENTINEL = "__idle__"
+
+/** O que está tocando de verdade agora (player em tela cheia ou mini player). Compartilhado por toda a app. */
+object NowPlaying {
+    @Volatile var title: String? = null
+        private set
+
+    /** Atualiza o que está tocando e avisa o painel NA HORA (sem esperar o ciclo de 60s). */
+    fun update(mac: String, newTitle: String?) {
+        val next = newTitle?.takeIf { it.isNotBlank() }
+        if (next == title) return
+        title = next
+        if (mac.isNotBlank()) AppIntegrationRepository.heartbeatNow(mac, next)
+    }
+}
 
 data class RemoteAppConfig(
     val registered: Boolean,
@@ -52,6 +71,19 @@ class AppIntegrationRepository {
     private var syncFuture: ScheduledFuture<*>? = null
 
     fun fetchConfig(mac: String, callback: (Result<RemoteAppConfig>) -> Unit) {
+        // Rota própria do Ominus no painel. Se o MAC não estiver vinculado a ele (403/404) ou der erro,
+        // cai no caminho antigo (check_mac / device/check) para não deixar cliente antigo sem acesso.
+        getAsync("/api/v5/apps/$OMINUS_APP_ID/config?mac=${encode(mac)}") { own ->
+            val ownConfig = own.getOrNull()?.let { parseGenericConfig(it, mac) }
+            if (ownConfig != null && ownConfig.registered) {
+                callback(Result.success(ownConfig))
+            } else {
+                fetchLegacyMacConfig(mac, callback)
+            }
+        }
+    }
+
+    private fun fetchLegacyMacConfig(mac: String, callback: (Result<RemoteAppConfig>) -> Unit) {
         getAsync("/api/v5/check_mac.php?mac=${encode(mac)}") { result ->
             result.onSuccess { json ->
                 val config = parseMaximusConfig(json, mac)
@@ -73,7 +105,7 @@ class AppIntegrationRepository {
     }
 
     fun fetchLegacyConfig(mac: String, callback: (Result<RemoteAppConfig>) -> Unit) {
-        getAsync("/api/v5/apps/evolux/config?mac=${encode(mac)}") { result ->
+        getAsync("/api/v5/apps/$OMINUS_APP_ID/config?mac=${encode(mac)}") { result ->
             callback(result.map { parseGenericConfig(it, mac) })
         }
     }
@@ -175,15 +207,7 @@ class AppIntegrationRepository {
     }
 
     fun sendHeartbeat(mac: String, currentContent: String? = null) {
-        val path = buildString {
-            append("/api/v5/heartbeat?mac=")
-            append(encode(mac))
-            if (!currentContent.isNullOrBlank()) {
-                append("&current_content=")
-                append(encode(currentContent))
-            }
-        }
-        getAsync(path) { }
+        getAsync(heartbeatPath(mac, currentContent)) { }
     }
 
     fun startBackgroundSync(
@@ -216,7 +240,8 @@ class AppIntegrationRepository {
     }
 
     fun checkUpdate(mac: String, callback: (Result<UpdateInfo>) -> Unit) {
-        getAsync("/api/v5/maximus-update?mac=${encode(mac)}") { result ->
+        // /maximus-update recusa MAC que não é do Maximus (403): o Ominus nunca recebia atualização.
+        getAsync("/api/v5/apps/$OMINUS_APP_ID/update?mac=${encode(mac)}") { result ->
             callback(result.map { json ->
                 UpdateInfo(
                     available = json.optBoolean("update_available", false),
@@ -266,7 +291,7 @@ class AppIntegrationRepository {
             registered = found,
             allowed = found && allowed && !blockedStatus,
             mac = root.optString("mac", fallbackMac),
-            appId = root.optString("app_id", "maximus"),
+            appId = root.optString("app_id", OMINUS_APP_ID),
             appName = root.optString("app_name", root.optString("app", "OMINUS")),
             status = status,
             expiration = root.optString("dataExpiracao", root.optString("expiration", "")),
@@ -296,7 +321,7 @@ class AppIntegrationRepository {
             registered = root.optBoolean("registered", true),
             allowed = root.optBoolean("allowed", true),
             mac = root.optString("mac", fallbackMac),
-            appId = root.optString("app_id", "evolux"),
+            appId = root.optString("app_id", OMINUS_APP_ID),
             appName = root.optString("app_name", "OMINUS"),
             status = root.optString("status"),
             expiration = root.optString("dataExpiracao", root.optString("expiration")),
@@ -353,27 +378,61 @@ class AppIntegrationRepository {
         executor.execute { callback(runCatching { request("POST", path, body) }) }
     }
 
-    private fun request(method: String, path: String, body: JSONObject?): JSONObject {
-        val connection = (URL(RENCIA_BASE_URL + path).openConnection() as HttpURLConnection).apply {
-            requestMethod = method
-            connectTimeout = 7_000
-            readTimeout = 12_000
-            setRequestProperty("Accept", "application/json")
-            setRequestProperty("User-Agent", "MaximusTVPlayer/1.0 AndroidTV")
-            if (body != null) {
-                doOutput = true
-                setRequestProperty("Content-Type", "application/json")
-                OutputStreamWriter(outputStream, Charsets.UTF_8).use { it.write(body.toString()) }
-            }
+    private fun request(method: String, path: String, body: JSONObject?): JSONObject = panelRequest(method, path, body)
+
+    private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")
+
+    companion object {
+        // Fila única: "tocando X" e "saiu" chegam ao painel na mesma ordem em que aconteceram.
+        private val quickExecutor = Executors.newSingleThreadExecutor()
+
+        /** Caminho do heartbeat: sem conteúdo manda a sentinela explícita, senão o painel mantém o "Assistindo" velho. */
+        fun heartbeatPath(mac: String, currentContent: String?): String {
+            val content = currentContent?.takeIf { it.isNotBlank() } ?: HEARTBEAT_IDLE_SENTINEL
+            return "/api/v5/heartbeat?mac=${URLEncoder.encode(mac, "UTF-8")}&current_content=${URLEncoder.encode(content, "UTF-8")}"
         }
+
+        /** Heartbeat imediato, independente de qualquer instância (usado quando o que está tocando muda). */
+        fun heartbeatNow(mac: String, currentContent: String?) {
+            quickExecutor.execute { runCatching { panelRequest("GET", heartbeatPath(mac, currentContent), null) } }
+        }
+    }
+}
+
+private class PanelHttpException(val status: Int) : RuntimeException("Integração HTTP $status")
+
+/** Tenta o painel no Railway e só cai no Manus se o primeiro falhar (exceção, HTML ou HTTP fora de 2xx). */
+private fun panelRequest(method: String, path: String, body: JSONObject?): JSONObject {
+    val primary = runCatching { singlePanelRequest(RENCIA_BASE_URL, method, path, body) }
+    primary.getOrNull()?.let { return it }
+    // O Railway respondeu com um erro "de verdade" (ex.: 404 MAC não cadastrado): é a resposta, não adianta perguntar ao Manus.
+    (primary.exceptionOrNull() as? PanelHttpException)?.takeIf { it.status in 400..499 }?.let { throw it }
+    val fallback = runCatching { singlePanelRequest(RENCIA_BASE_URL_FALLBACK, method, path, body) }
+    fallback.getOrNull()?.let { return it }
+    throw primary.exceptionOrNull() ?: fallback.exceptionOrNull() ?: IllegalStateException("Painel indisponível")
+}
+
+private fun singlePanelRequest(baseUrl: String, method: String, path: String, body: JSONObject?): JSONObject {
+    val connection = (URL(baseUrl + path).openConnection() as HttpURLConnection).apply {
+        requestMethod = method
+        connectTimeout = 6_000
+        readTimeout = 10_000
+        setRequestProperty("Accept", "application/json")
+        setRequestProperty("User-Agent", "OminusTVPlayer/1.0 AndroidTV")
+        if (body != null) {
+            doOutput = true
+            setRequestProperty("Content-Type", "application/json")
+            OutputStreamWriter(outputStream, Charsets.UTF_8).use { it.write(body.toString()) }
+        }
+    }
+    try {
         val status = connection.responseCode
         val stream = if (status in 200..299) connection.inputStream else connection.errorStream
         val text = stream?.bufferedReader(Charsets.UTF_8)?.use(BufferedReader::readText).orEmpty().trim()
-        connection.disconnect()
         if (text.startsWith("<html", true) || text.startsWith("<!doctype", true)) error("Resposta HTML inválida da integração")
-        if (status !in 200..299) error("Integração HTTP $status")
+        if (status !in 200..299) throw PanelHttpException(status)
         return if (text.isBlank()) JSONObject() else JSONObject(text)
+    } finally {
+        connection.disconnect()
     }
-
-    private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")
 }
