@@ -1964,6 +1964,7 @@ class MainActivity : Activity() {
         }
         stopMiniPlayer()
         previewScale = PreviewScale.STRETCH
+        if (mode == PreviewMode.CONTENT) NowPlaying.update(panelMac(), previewTitle)
         val playerView = PlayerView(this).apply {
             useController = false
             controllerShowTimeoutMs = 0
@@ -2334,7 +2335,10 @@ class MainActivity : Activity() {
         player?.playWhenReady = true
     }
 
+    private fun panelMac(): String = getSharedPreferences(ActivationActivity.PREFS_NAME, MODE_PRIVATE).getString(PREF_MAC_ADDRESS, "").orEmpty()
+
     private fun stopMiniPlayer() {
+        if (NowPlaying.title != null && !isFinishing) NowPlaying.update(panelMac(), null)
         miniPlayerDialog?.setOnDismissListener(null)
         miniPlayerDialog?.dismiss()
         miniPlayerDialog = null
@@ -3104,7 +3108,7 @@ class MainActivity : Activity() {
                     if (catalogImportAlreadyStarted) startCatalogImportWatcher()
                     if (remoteSyncEnabled()) appIntegration.startBackgroundSync(
                         mac = mac,
-                        currentContent = { selectedEntry?.name },
+                        currentContent = { NowPlaying.title },
                         onNotifications = { notifications -> showRemoteNotifications(mac, notifications) },
                         onCommands = { commands -> showRemoteCommands(mac, commands) },
                     )
