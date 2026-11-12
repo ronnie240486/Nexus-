@@ -17,6 +17,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
 class PlayerActivity : Activity() {
+    private var playerMac: String = ""
     private enum class ScaleMode(val label: String) { NORMAL("MODO: NORMAL"), STRETCH("MODO: ESTICAR"), ZOOM("MODO: ZOOM") }
 
     private var player: ExoPlayer? = null
@@ -76,6 +77,8 @@ class PlayerActivity : Activity() {
         val streamUrl = intent.getStringExtra(EXTRA_URL).orEmpty()
         val mac = intent.getStringExtra(EXTRA_MAC).orEmpty()
         findViewById<TextView>(R.id.playerTitle).text = "OMINUS  •  $title"
+        playerMac = mac
+        if (streamUrl.isNotBlank()) NowPlaying.update(mac, title)
         if (streamUrl.isBlank()) {
             showError("URL de reprodução não disponível")
             return
@@ -168,6 +171,8 @@ class PlayerActivity : Activity() {
         backButton.removeCallbacks(hideBackButton)
         player?.release()
         player = null
+        // Saiu do player: limpa o "Assistindo" no painel na hora.
+        NowPlaying.update(playerMac, null)
         super.onStop()
     }
 
